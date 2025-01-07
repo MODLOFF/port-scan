@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MODLOFF Port Scanner</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #8b5cf6;
+            --success: #10b981;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --card-bg: rgba(15, 23, 42, 0.75);
+            --hover-shadow: 0 8px 32px rgba(99, 102, 241, 0.25);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background-color: var(--dark);
+            color: #fff;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        .bg-animation {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -2;
+            background: 
+                radial-gradient(circle at 0% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(139, 92, 246, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 50% 50%, rgba(15, 23, 42, 0.95) 0%, var(--dark) 100%);
+            animation: bgPulse 10s ease-in-out infinite alternate;
+        }
+
+        @keyframes bgPulse {
+            0% { opacity: 0.8; }
+            100% { opacity: 1; }
+        }
+
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px);
+            background-size: 30px 30px;
+            z-index: -1;
+            transform: perspective(1000px) rotateX(60deg) scale(2.5);
+            transform-origin: 50% 0;
+            animation: gridMove 20s linear infinite;
+        }
+
+        @keyframes gridMove {
+            0% { transform: perspective(1000px) rotateX(60deg) translateY(0) scale(2.5); }
+            100% { transform: perspective(1000px) rotateX(60deg) translateY(-30px) scale(2.5); }
+        }
+
+        .container {
+            max-width: 1200px;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 4rem;
+            position: relative;
+        }
+
+        .logo-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 2rem;
+        }
+
+        .logo {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1;
+        }
+
+        .logo i {
+            font-size: 3.5rem;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.5));
+        }
+
+        .logo-ring {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 50%;
+            animation: logoRing 4s linear infinite;
+        }
+
+        .logo-ring:nth-child(2) {
+            width: 80%;
+            height: 80%;
+            border-color: rgba(139, 92, 246, 0.2);
+            animation-direction: reverse;
+            animation-duration: 3s;
+        }
+
+        .logo-ring:nth-child(3) {
+            width: 60%;
+            height: 60%;
+            border-color: rgba(99, 102, 241, 0.2);
+            animation-duration: 2s;
+        }
+
+        @keyframes logoRing {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            position: relative;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            border-radius: 2px;
+        }
+
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 24px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                transparent 0%,
+                rgba(99, 102, 241, 0.1) 50%,
+                transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--hover-shadow);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .form-label {
+            color: #e2e8f0;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .form-label i {
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        .form-control {
+            background: rgba(15, 23, 42, 0.8);
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            color: #fff;
+            padding: 1.2rem;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            font-family: 'Space Grotesk', monospace;
+        }
+
+        .form-control:focus {
+            background: rgba(15, 23, 42, 0.9);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+        }
+
+        .form-control::placeholder {
+            color: #64748b;
+            font-style: italic;
+        }
+
+        .btn-scan {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 1.2rem 3rem;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-scan i {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+
+        .btn-scan:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-scan:hover i {
+            transform: rotate(180deg);
+        }
+
+        .btn-scan::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                rgba(255, 255, 255, 0.2),
+                rgba(255, 255, 255, 0.1),
+                rgba(255, 255, 255, 0)
+            );
+            transform: rotate(45deg);
+            animation: buttonShine 3s infinite;
+        }
+
+        @keyframes buttonShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .scanning-status {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin: 2rem 0;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(15, 23, 42, 0.2);
+            backdrop-filter: blur(10px);
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .scanning-status::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                rgba(99, 102, 241, 0.05) 0%,
+                rgba(139, 92, 246, 0.05) 100%);
+            pointer-events: none;
+        }
+
+        .scanning-status::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle at var(--x, 50%) var(--y, 50%),
+                rgba(99, 102, 241, 0.1) 0%,
+                transparent 50%
+            );
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .scanning-status:hover::after {
+            opacity: 1;
+        }
+
+        .scan-icon {
+            width: 70px;
+            height: 70px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            margin-right: 1.5rem;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+            animation: iconFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes iconFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .scan-icon::before {
+            content: '';
+            position: absolute;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0%,
+                rgba(99, 102, 241, 0.1) 25%,
+                var(--primary) 50%,
+                rgba(99, 102, 241, 0.1) 75%,
+                transparent 100%
+            );
+            animation: radarSpin 3s linear infinite;
+            border-radius: 50%;
+        }
+
+        @keyframes radarSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .scan-icon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle at center,
+                rgba(15, 23, 42, 0.9) 0%,
+                rgba(15, 23, 42, 0.95) 100%
+            );
+            border-radius: 50%;
+            z-index: 0;
+        }
+
+        .scan-icon i {
+            font-size: 2rem;
+            color: var(--primary);
+            position: relative;
+            z-index: 1;
+            filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.7));
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(0.85); opacity: 0.8; }
+        }
+
+        .scan-info {
+            flex: 1;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .scan-info h4 {
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #fff;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .scan-info p {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        .scan-info p i {
+            font-size: 0.9rem;
+            color: var(--primary);
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .progress {
+            height: 15px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 30px;
+            overflow: hidden;
+            position: relative;
+            margin-top: 2rem;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .progress::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(99, 102, 241, 0.1) 10px,
+                rgba(99, 102, 241, 0.1) 20px
+            );
+            animation: moveStripes 20s linear infinite;
+        }
+
+        @keyframes moveStripes {
+            from { background-position: 0 0; }
+            to { background-position: 50px 0; }
+        }
+
+        .progress-bar {
+            background: linear-gradient(90deg, 
+                var(--primary) 0%, 
+                var(--secondary) 50%,
+                var(--primary) 100%);
+            background-size: 200% 100%;
+            animation: gradientMove 2s linear infinite;
+            box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+            position: relative;
+            overflow: hidden;
+            border-radius: 30px;
+            transition: width 0.5s ease;
+        }
+
+        .progress-bar::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.6) 50%,
+                transparent 100%);
+            animation: progressShine 1.5s linear infinite;
+            transform: skewX(-20deg);
+        }
+
+        .progress-glow {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(
+                circle at center,
+                rgba(99, 102, 241, 0.7) 0%,
+                transparent 70%
+            );
+            filter: blur(8px);
+            opacity: 0.5;
+            animation: glowPulse 2s ease-in-out infinite;
+            mix-blend-mode: overlay;
+        }
+
+        @keyframes glowPulse {
+            0%, 100% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.3; transform: scale(1.1); }
+        }
+
+        .progress-particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .progress-particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 50%;
+            pointer-events: none;
+            animation: particleFloat 2s ease-in-out infinite;
+        }
+
+        @keyframes particleFloat {
+            0%, 100% { transform: translate(0, 0); opacity: 0; }
+            50% { transform: translate(10px, -10px); opacity: 1; }
+        }
+
+        .scanning-status:hover .progress-bar {
+            filter: brightness(1.2);
+        }
+
+        .scanning-status:hover .scan-icon {
+            transform: scale(1.05);
+        }
+
+        .scanning-status:hover .progress-glow {
+            opacity: 0.7;
+        }
+
+        .results-table {
+            background: var(--card-bg);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 24px;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+            margin-top: 3rem;
+        }
+
+        .table {
+            margin: 0;
+            color: #fff;
+            --bs-table-bg: transparent;
+            --bs-table-hover-bg: rgba(99, 102, 241, 0.1);
+            --bs-table-hover-color: #fff;
+        }
+
+        .table > :not(caption) > * > * {
+            background: transparent;
+            color: #fff;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.1);
+            padding: 1.5rem;
+        }
+
+        .table tbody tr {
+            background: rgba(15, 23, 42, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .table tbody tr:hover {
+            background: rgba(99, 102, 241, 0.1) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.15);
+        }
+
+        .table thead th {
+            background: rgba(15, 23, 42, 0.95);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            padding: 1.5rem;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 1px;
+            text-align: center;
+            border-bottom: 2px solid rgba(99, 102, 241, 0.2);
+        }
+
+        .table tbody td {
+            background: transparent !important;
+            border: none;
+            padding: 0.5rem;
+            vertical-align: middle;
+        }
+
+        .service-icon {
+            width: 50px;
+            height: 50px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-icon::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                transparent 0%,
+                rgba(99, 102, 241, 0.2) 50%,
+                transparent 100%);
+            animation: iconShine 2s linear infinite;
+        }
+
+        @keyframes iconShine {
+            0% { transform: translateX(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) rotate(45deg); }
+        }
+
+        .service-icon i {
+            font-size: 1.5rem;
+            color: var(--primary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .ip-card {
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(30, 41, 59, 0.9));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 0.5rem;
+        }
+
+        .ip-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg,
+                transparent 0%,
+                rgba(99, 102, 241, 0.1) 50%,
+                transparent 100%);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+
+        .ip-card:hover::before {
+            transform: translateX(100%);
+        }
+
+        .ip-icon {
+            width: 60px;
+            height: 60px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .ip-icon i {
+            font-size: 1.8rem;
+            color: var(--primary);
+            position: relative;
+            z-index: 1;
+        }
+
+        .ip-details {
+            flex: 1;
+        }
+
+        .ip-address {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .ip-status {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .port-card {
+            margin: 0.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .port-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .port-card:hover::before {
+            opacity: 1;
+        }
+
+        .port-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+
+        .port-icon i {
+            font-size: 1.2rem;
+            color: var(--primary);
+        }
+
+        .port-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fff;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .port-number {
+            font-family: 'Space Grotesk', monospace;
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+        }
+
+        .status-badge {
+            padding: 0.8rem 1.5rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .status-open {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.1) 100%);
+            color: #10b981;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-closed {
+            background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.1) 100%);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .status-badge i {
+            font-size: 1.1rem;
+        }
+
+        .export-btn {
+            background: linear-gradient(135deg, var(--secondary) 0%, var(--primary-dark) 100%);
+            color: #fff;
+            border: none;
+            border-radius: 16px;
+            padding: 1.2rem 2.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-flex;
+            align-items: center;
+            gap: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.4);
+        }
+
+        .export-btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                rgba(255, 255, 255, 0.2),
+                rgba(255, 255, 255, 0.1),
+                rgba(255, 255, 255, 0)
+            );
+            transform: rotate(45deg);
+            animation: buttonShine 3s infinite;
+        }
+
+        .scanning .scanning-line {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg,
+                transparent 0%,
+                var(--primary) 50%,
+                transparent 100%);
+            animation: scanLine 1.5s linear infinite;
+            opacity: 0.5;
+        }
+
+        @keyframes scanLine {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+
+            .title {
+                font-size: 2.5rem;
+            }
+
+            .card {
+                padding: 1.5rem;
+            }
+
+            .ip-card {
+                flex-direction: column;
+                text-align: center;
+                padding: 1.5rem;
+            }
+
+            .ip-icon {
+                margin: 0 auto 1rem;
+            }
+
+            .scanning-status {
+                padding: 1.5rem;
+            }
+
+            .status-badge {
+                padding: 0.6rem 1.2rem;
+                font-size: 0.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+    <div class="bg-grid"></div>
+    
+    <div class="container">
+        <header class="header">
+            <div class="logo-container">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="logo-ring"></div>
+                <div class="logo-ring"></div>
+                <div class="logo-ring"></div>
+            </div>
+            <h1 class="title">MODLOFF</h1>
+            <p class="subtitle">Gelişmiş Port Tarama Sistemi</p>
+        </header>
+
+        <div class="card">
+            <form id="scanForm">
+                <div class="mb-4">
+                    <label for="hosts" class="form-label">
+                        <i class="fas fa-network-wired"></i>
+                        Hedef IP Adresleri
+                    </label>
+                    <textarea class="form-control" id="hosts" name="hosts" rows="4" required 
+                        placeholder="Her satıra bir IP adresi yazın&#10;Örnek:&#10;192.168.1.1&#10;192.168.1.2"></textarea>
+                </div>
+                <div class="text-center">
+                    <button type="submit" class="btn-scan">
+                        <i class="fas fa-radar"></i>
+                        Taramayı Başlat
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <div id="scanning-status" class="scanning-status d-none">
+            <div class="d-flex align-items-center">
+                <div class="scan-info">
+                    <h4>Port Taraması Devam Ediyor</h4>
+                    <p>
+                        <i class="fas fa-sync-alt fa-spin"></i>
+                        <span id="progress" class="fw-bold">0/0</span> IP adresi analiz edildi
+                    </p>
+                </div>
+            </div>
+            <div class="progress">
+                <div class="progress-particles"></div>
+                <div class="progress-glow"></div>
+                <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="results-table">
+            <table class="table table-hover d-none">
+                <thead>
+                    <tr>
+                        <th>
+                            <div class="service-icon">
+                                <i class="fas fa-network-wired"></i>
+                            </div>
+                            Hedef IP
+                        </th>
+                        <th>
+                            <div class="service-icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            Windows RDP
+                        </th>
+                        <th>
+                            <div class="service-icon">
+                                <i class="fas fa-terminal"></i>
+                            </div>
+                            Linux SSH
+                        </th>
+                        <th>
+                            <div class="service-icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            Web Server
+                        </th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="export-container" class="text-center mt-5" style="display: none;">
+            <button id="exportBtn" class="export-btn">
+                <i class="fas fa-file-export"></i>
+                Kapalı Portları İndir
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('scanForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const hostsText = document.getElementById('hosts').value;
+            const hosts = hostsText.split('\n').map(h => h.trim()).filter(h => h);
+            
+            const table = document.querySelector('.table');
+            const tbody = table.querySelector('tbody');
+            const scanningStatus = document.getElementById('scanning-status');
+            const progressSpan = document.getElementById('progress');
+            const progressBar = document.querySelector('.progress-bar');
+            const exportContainer = document.getElementById('export-container');
+            
+            exportContainer.style.display = 'none';
+            table.classList.remove('d-none');
+            scanningStatus.classList.remove('d-none');
+            tbody.innerHTML = '';
+            
+            let completed = 0;
+            const totalScans = hosts.length;
+            progressSpan.textContent = `0/${totalScans}`;
+            
+            const results = [];
+
+            for (const host of hosts) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <div class="ip-card">
+                            <div class="ip-icon">
+                                <i class="fas fa-network-wired"></i>
+                            </div>
+                            <div class="ip-details">
+                                <div class="ip-address">
+                                    <i class="fas fa-globe"></i>
+                                    ${host}
+                                </div>
+                                <div class="ip-status">Taranıyor...</div>
+                            </div>
+                            <div class="scanning-line"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="port-card scanning">
+                            <div class="port-icon">
+                                <i class="fas fa-desktop"></i>
+                            </div>
+                            <div class="port-name">Windows RDP</div>
+                            <div class="port-number">Port: 3389</div>
+                            <div class="scanning-placeholder">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Taranıyor...
+                            </div>
+                            <div class="scanning-line"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="port-card scanning">
+                            <div class="port-icon">
+                                <i class="fas fa-terminal"></i>
+                            </div>
+                            <div class="port-name">Linux SSH</div>
+                            <div class="port-number">Port: 22</div>
+                            <div class="scanning-placeholder">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Taranıyor...
+                            </div>
+                            <div class="scanning-line"></div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="port-card scanning">
+                            <div class="port-icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <div class="port-name">Web Server</div>
+                            <div class="port-number">Port: 80</div>
+                            <div class="scanning-placeholder">
+                                <i class="fas fa-spinner fa-spin"></i>
+                                Taranıyor...
+                            </div>
+                            <div class="scanning-line"></div>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+
+                const hostResult = {
+                    ip: host,
+                    ports: {
+                        rdp: false,
+                        ssh: false,
+                        web: false
+                    }
+                };
+
+                const ports = [
+                    { port: 3389, index: 1, name: 'Windows RDP', icon: 'desktop', key: 'rdp' },
+                    { port: 22, index: 2, name: 'Linux SSH', icon: 'terminal', key: 'ssh' },
+                    { port: 80, index: 3, name: 'Web Server', icon: 'cloud', key: 'web' }
+                ];
+
+                for (const portInfo of ports) {
+                    try {
+                        const response = await fetch('/scan', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded',
+                            },
+                            body: new URLSearchParams({
+                                host: host,
+                                port: portInfo.port,
+                                protocol: 'tcp'
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        const cell = row.cells[portInfo.index];
+                        const portCard = cell.querySelector('.port-card');
+                        
+                        if (data.status === 'açık') {
+                            hostResult.ports[portInfo.key] = true;
+                            portCard.innerHTML = `
+                                <div class="port-icon">
+                                    <i class="fas fa-${portInfo.icon}"></i>
+                                </div>
+                                <div class="port-name">${portInfo.name}</div>
+                                <div class="port-number">Port: ${portInfo.port}</div>
+                                <div class="status-badge status-open">
+                                    <i class="fas fa-check-circle"></i>
+                                    Açık
+                                </div>
+                            `;
+                            portCard.classList.remove('scanning');
+                        } else {
+                            portCard.innerHTML = `
+                                <div class="port-icon">
+                                    <i class="fas fa-${portInfo.icon}"></i>
+                                </div>
+                                <div class="port-name">${portInfo.name}</div>
+                                <div class="port-number">Port: ${portInfo.port}</div>
+                                <div class="status-badge status-closed">
+                                    <i class="fas fa-times-circle"></i>
+                                    Kapalı
+                                </div>
+                            `;
+                            portCard.classList.remove('scanning');
+                        }
+                    } catch (error) {
+                        const cell = row.cells[portInfo.index];
+                        const portCard = cell.querySelector('.port-card');
+                        portCard.innerHTML = `
+                            <div class="port-icon">
+                                <i class="fas fa-${portInfo.icon}"></i>
+                            </div>
+                            <div class="port-name">${portInfo.name}</div>
+                            <div class="port-number">Port: ${portInfo.port}</div>
+                            <div class="status-badge status-closed">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Hata
+                            </div>
+                        `;
+                        portCard.classList.remove('scanning');
+                    }
+                }
+                
+                // IP kartının durumunu güncelle
+                const ipCard = row.querySelector('.ip-card');
+                const ipStatus = ipCard.querySelector('.ip-status');
+                ipStatus.textContent = 'Tarama Tamamlandı';
+                ipCard.classList.remove('scanning');
+                
+                results.push(hostResult);
+                completed++;
+                const progress = (completed / totalScans) * 100;
+                progressSpan.textContent = `${completed}/${totalScans}`;
+                progressBar.style.width = `${progress}%`;
+            }
+            
+            setTimeout(() => {
+                scanningStatus.classList.add('d-none');
+                exportContainer.style.display = 'block';
+            }, 1000);
+
+            document.getElementById('exportBtn').onclick = () => {
+                const closedPorts = results.filter(result => 
+                    !result.ports.rdp && !result.ports.ssh && !result.ports.web
+                );
+
+                const content = closedPorts.map(result => 
+                    `IP: ${result.ip}\nWindows RDP (3389): Kapalı\nLinux SSH (22): Kapalı\nWeb Server (80): Kapalı\n\n`
+                ).join('');
+
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'kapali_portlar.txt';
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+            };
+        });
+    </script>
+</body>
+</html> 
